@@ -16,6 +16,7 @@ imagen_lista = False
 
 if archivo is not None:
    imagen = Image.open(archivo)
+   imagen.thumbnail((800, 800))
    with espacio:
       espacio=st.columns([1, 7])
    st.image(imagen, caption="Imagen cargada con éxito", width=90)
