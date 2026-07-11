@@ -2,3 +2,4 @@ streamlit
 ultralytics
 pillow
 roboflow
+opencv-python-headless
