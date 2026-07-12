@@ -1,4 +1,7 @@
 import streamlit as st
+import sys
+from unittest.mock import MagicMock
+sys.modules["cv2"] = MagicMock()
 from ultralytics import YOLO
 from roboflow import Roboflow
 from PIL import Image
