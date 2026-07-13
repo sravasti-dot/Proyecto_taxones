@@ -7,32 +7,47 @@ st.title("Sistema de monitoreo de macroinvertebrados")
 st.write("Sube una foto del taxón que deseas identificar")
 rf = Roboflow(api_key="SiR5RA2UDruTVpmqk5jF")
 model_roboflow = rf.workspace("angie-oedt9").project("taxones").version(1).model
+
+if "imagen_lista" not in st.session_state:
+     st.session_state.imagen_lista = False
+
 espacio= st.empty()
-archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png"])
+
+
+archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"])
 activar_camara = st.checkbox("Encender cámara")
-foto_camara = None
-imagen_lista = False
+
+archivo = None
+pixeles = None
 
 if archivo is not None:
-   imagen = Image.open(archivo)
-   with espacio:
-      espacio=st.columns([1, 7])
-   st.image(imagen, caption="Imagen cargada con éxito", width=90)
-   if imagen.mode == "RGB":
-        imagen = imagen.convert("RGBA")
-        ruta_temporal = "temp_image.jpg"
-        imagen.save(ruta_temporal)
-   imagen.save("imagen.jpg")
-   imagen_lista= True
+          st.session_state.imagen_lista = False  
+          try:
+                st.image(archivo, caption="Imagen capturada con éxito", width=90)
+                descarga = Image.open(archivo)
+                limpiar_imagen = descarga.convert('RGB')
+                limpiar_imagen.save("imagen.jpg")
+                st.session_state.imagen_lista = True
+          except Exception as e:
+              st.error (f"No pudimos procesar el archivo: {e}")  
+
+
+
 if activar_camara:
-   foto_camara=st.camera_input("Tomar una foto desde este dispositivo")
-   if foto_camara is not None:
-       imagen = Image.open(foto_camara)
-       st.image(imagen, caption="Imagen capturada con éxito", width=90)
-       imagen.save("imagen.jpg")
-       imagen_lista= True
+     pixeles=st.camera_input("Tomar una foto desde este dispositivo...")
+     if pixeles is not None:
+         st.session_state.imagen_lista = False
+         try:
+             st.image(pixeles, caption="Imagen capturada con éxito", width=90)
+             foto_camara = Image.open(pixeles)
+             limpiar_imagen = foto_camara.convert('RGB')
+             limpiar_imagen.save("imagen.jpg")
+             st.session_state.imagen_lista = True
+         except Exception as e:
+             st.error (f"No pudimos procesar la foto: {e}")  
+
 if st.button("Realizar predicción"):
-   if imagen_lista:
+     if st.session_state.imagen_lista:
        with st.spinner("Realizando predicción..."):
           prediccion = model_roboflow.predict("imagen.jpg", confidence=70, overlap=30)
           prediccion.save("resultado.jpg")
