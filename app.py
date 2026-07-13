@@ -8,7 +8,7 @@ st.write("Sube una foto del taxón que deseas identificar")
 rf = Roboflow(api_key="SiR5RA2UDruTVpmqk5jF")
 model_roboflow = rf.workspace("angie-oedt9").project("taxones").version(1).model
 espacio= st.empty()
-archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"])
+archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png"])
 activar_camara = st.checkbox("Encender cámara")
 foto_camara = None
 imagen_lista = False
@@ -19,7 +19,7 @@ if archivo is not None:
       espacio=st.columns([1, 7])
    st.image(imagen, caption="Imagen cargada con éxito", width=90)
    if imagen.mode == "RGB":
-        imagen = imagen.convert("RGB")
+        imagen = imagen.convert("RGBA")
         ruta_temporal = "temp_image.jpg"
         imagen.save(ruta_temporal)
    imagen.save("imagen.jpg")
