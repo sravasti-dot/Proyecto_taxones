@@ -1,6 +1,3 @@
 streamlit
-ultralytics
 roboflow
 pillow
-opencv-python-headless
-opencv-contrib-python-headless
