@@ -1,5 +1,5 @@
-streamlit==1.30.0
-ultralytics==8.2.0
-pillow
+streamlit
+ultralytics
 roboflow
-opencv-python-headless==4.9.0.80
+pillow
+opencv-python-headless
