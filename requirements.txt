@@ -1,4 +1,7 @@
 streamlit
 ultralytics
+opencv-python-headless
 roboflow
 pillow
+torch
+torchvision
