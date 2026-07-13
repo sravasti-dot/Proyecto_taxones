@@ -41,15 +41,20 @@ if st.button("Realizar predicción"):
        with st.spinner("Realizando predicción..."):
           prediccion = model_roboflow.predict("imagen.jpg", confidence=70, overlap=30)
           prediccion.save("resultado.jpg")
-          datos = prediccion.json()
-          st.image("resultado.jpg", caption="Resultado de la predicción", width=400)
-          st.subheader("Taxones detectados en la muestra:")
-          if "predictions" in datos and len(datos["predictions"])>0:
-             for taxon in datos["predictions"]:
-                nombre_taxon= taxon["class"]
-                certeza = taxon["confidence"]*100
-                st.write(f"**{nombre_taxon}** con una certeza de **{certeza:.2f}%**")
+          if os.path.exists("resultado.jpg"):
+              datos = prediccion.json()
+              st.image("resultado.jpg", caption="Resultado de la predicción", width=400)
+    
+         
+              st.subheader("Taxones detectados en la muestra:")
+              if "predictions" in datos and len(datos["predictions"])>0:
+                  for taxon in datos["predictions"]:
+                      nombre_taxon= taxon["class"]
+                      certeza = taxon["confidence"]*100
+                      st.write(f"**{nombre_taxon}** con una certeza de **{certeza:.2f}%**")
+              else:
+                 st.write("No se detectaron taxones en la imagen.")
           else:
-            st.write("No se detectaron taxones en la imagen.")
+              st.error("Hubo un error al generar la imagen de resultado. Por favor, intenta nuevamente.")      
     else:
-        st.warning("Por favor, sube una imagen o toma una foto para realizar la predicción.")
+         st.warning("Por favor, sube una imagen o toma una foto para realizar la predicción.")
