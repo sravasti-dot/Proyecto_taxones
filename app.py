@@ -1,7 +1,4 @@
 import streamlit as st
-import sys
-from unittest.mock import MagicMock
-sys.modules["cv2"] = MagicMock()
 from ultralytics import YOLO
 from roboflow import Roboflow
 from PIL import Image
@@ -16,6 +13,7 @@ archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png"])
 activar_camara = st.checkbox("Encender cámara")
 foto_camara = None
 imagen_lista = False
+
 if archivo is not None:
    imagen = Image.open(archivo)
    with espacio:
