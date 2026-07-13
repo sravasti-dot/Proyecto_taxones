@@ -1,2 +1,5 @@
+opencv-python-headless
 streamlit
 ultralytics
+roboflow
+pillow
