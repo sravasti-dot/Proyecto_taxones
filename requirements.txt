@@ -1,9 +1,6 @@
-
-=======
 streamlit
 ultralytics
 roboflow
 pillow
 opencv-python-headless
 opencv-contrib-python-headless
->>>>>>> 6f2cd79 (Actualico dependencias a versiones headless)
