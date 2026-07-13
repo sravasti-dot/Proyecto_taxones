@@ -1,5 +1,4 @@
 import streamlit as st
-from ultralytics import YOLO
 from roboflow import Roboflow
 from PIL import Image
 

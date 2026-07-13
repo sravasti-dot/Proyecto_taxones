@@ -1,5 +1,4 @@
 import streamlit as st
-from ultralytics import YOLO
 from roboflow import Roboflow
 from PIL import Image
 st.set_page_config(page_title="Detector de taxones", layout="wide", page_icon="favicon.png")
