@@ -1,5 +1,9 @@
-streamlit==1.46.1
-ultralytics==8.3.0
-opencv-python-headless==4.10.0.84
-roboflow==1.1.68
-pillow==11.3.0
+
+=======
+streamlit
+ultralytics
+roboflow
+pillow
+opencv-python-headless
+opencv-contrib-python-headless
+>>>>>>> 6f2cd79 (Actualico dependencias a versiones headless)
