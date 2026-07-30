@@ -7,8 +7,8 @@ st.image("mi_portada.png", use_container_width=True)
 st.title("Sistema de monitoreo de macroinvertebrados")
 st.write("Detección de macroinvertebrados")
 rf = Roboflow(api_key="SiR5RA2UDruTVpmqk5jF")
-proyecto = rf.workspace("angie-oedt9").project("taxones").version(1)
-model_roboflow = proyecto.model
+proyecto = rf.workspace("angie-oedt9").project("taxones")
+model_roboflow = proyecto.version(1).model
 
 tab1, tab2 = st.tabs(["Subir archivo", "Cámara dedicada"])
 archivo = None
