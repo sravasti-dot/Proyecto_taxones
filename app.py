@@ -6,7 +6,8 @@ st.image("mi_portada.png", use_container_width=True)
 st.title("Sistema de monitoreo de macroinvertebrados")
 st.write("Sube una foto del taxón que deseas identificar")
 rf = Roboflow(api_key="SiR5RA2UDruTVpmqk5jF")
-model_roboflow = rf.workspace("angie-oedt9").project("taxones").version(1).model
+proyecto = rf.workspace("angie-oedt9").project("taxones").version(1)
+model_roboflow = proyecto.model
 
 archivo = None
 pixeles = None
