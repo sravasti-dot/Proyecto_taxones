@@ -1,36 +1,39 @@
 import streamlit as st
 from roboflow import Roboflow
 from PIL import Image
+
 st.set_page_config(page_title="Detector de taxones", layout="wide", page_icon="favicon.png")
 st.image("mi_portada.png", use_container_width=True)
-st.title("Sistema de monitoreo de macroinvertebrados")
-st.write("Sube una foto del taxón que deseas identificar")
+st.title("Sistema automatizado para la identificación de macroinvertebrados")
+st.write("Detección de macroinvertebrados")
 rf = Roboflow(api_key="SiR5RA2UDruTVpmqk5jF")
 model_roboflow = rf.workspace("angie-oedt9").project("taxones").version(1).model
+
+tab1, tab2 = st.tabs(["Subir archivo", "Cámara dedicada"])
 archivo = None
 pixeles = None
-
-archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"])
-activar_camara = st.checkbox("Encender cámara")
 
 if "imagen_lista" not in st.session_state:
      st.session_state.imagen_lista = False
 
+with tab1:
+     st.write("Sube una imagen del taxón que deseas identificar")
+     archivo = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"])
+     if archivo is not None:
+         st.session_state.imagen_lista = False  
+         try:
+             st.image(archivo, caption="Imagen capturada con éxito", width=90)
+             descarga = Image.open(archivo)
+             limpiar_imagen = descarga.convert('RGB')
+             limpiar_imagen.save("imagen.jpg")
+             st.session_state.imagen_lista = True
+         except Exception as e:
+             st.error (f"No pudimos procesar el archivo: {e}")  
 
-if archivo is not None:
-          st.session_state.imagen_lista = False  
-          try:
-                st.image(archivo, caption="Imagen capturada con éxito", width=90)
-                descarga = Image.open(archivo)
-                limpiar_imagen = descarga.convert('RGB')
-                limpiar_imagen.save("imagen.jpg")
-                st.session_state.imagen_lista = True
-          except Exception as e:
-              st.error (f"No pudimos procesar el archivo: {e}")  
 
 
-
-if activar_camara:
+with tab2:
+     st.write("Usa la cámara dedicada de la web app para tomar una foto")
      pixeles=st.camera_input("Tomar una foto desde este dispositivo...")
      if pixeles is not None:
          st.session_state.imagen_lista = False
@@ -42,6 +45,7 @@ if activar_camara:
              st.session_state.imagen_lista = True
          except Exception as e:
              st.error (f"No pudimos procesar la foto: {e}")  
+
 
 if st.button("Realizar predicción"):
      if st.session_state.imagen_lista:
