@@ -1,6 +1,6 @@
 import streamlit as st
 from roboflow import Roboflow
-from PIL import Imagen
+from PIL import Image
 
 st.set_page_config(page_title="Detector de taxones", layout="wide", page_icon="favicon.png")
 st.image("mi_portada.png", use_container_width=True)
