@@ -2,6 +2,7 @@ import streamlit as st
 from roboflow import Roboflow
 from PIL import Image
 import hashlib
+import os
 
 st.set_page_config(page_title="Detector de taxones", layout="wide", page_icon="favicon.png")
 st.image("mi_portada.png", use_container_width=True)
@@ -12,45 +13,66 @@ model_roboflow = rf.workspace("angie-oedt9").project("taxones").version(1).model
 
 
 tab1, tab2 = st.tabs(["Subir archivo", "Cámara dedicada"])
-archivero = None
+galeria = None
 pixeles = None
 duplicado = False
+rutas_guardadas = []
+col1, col2 = st.columns([6, 1])
 
 if "imagen_lista" not in st.session_state:
      st.session_state.imagen_lista = False
 
-if "imagenes_procesadas" not in st.session_state:
-    st.session_state.imagenes_procesadas = set()          
+if "obras_procesadas" not in st.session_state:
+    st.session_state.obras_guardadas = set()   
+
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = 0           
 
 with tab1:
      st.write("Sube una imagen del taxón que deseas identificar")
-     archivero = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True)
+     galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
 
-     if archivero is not None and len(archivero) <= 2:
+     if galeria is not None and len(galeria) <= 4:
          st.session_state.imagen_lista = False  
          try:
-           for file in archivero:  
-             leer_file = file.getvalue()
-             huella = hashlib.md5(leer_file).hexdigest()
+           huellas_de_esta_tanda = set()
+           for obra in galeria:  
+             bytes_obra = obra.getvalue()
+             resumen_bytes = hashlib.md5(bytes_obra).hexdigest()
+             
 
-             if huella in st.session_state.imagenes_procesadas:
-                 st.warning(f"La imagen {file.name} ya ha sido procesada anteriormente.")
+             if resumen_bytes in st.session_state.obras_guardadas:
+                 st.warning(f"La imagen {obra.name} ya ha sido procesada anteriormente.")
                  duplicado = True
-            
-             if duplicado:
-                st.stop()
-             else:
-                 st.session_state.imagenes_procesadas.add(huella)
-                 st.image(file, caption=f"Imagen '{file.name}' capturada con éxito", width=90)
 
-                 descarga = Image.open(file)
+             elif resumen_bytes in huellas_de_esta_tanda:
+                     st.warning(f"La imagen {obra.name} está repetida dentro de tu selección actual. Elimínala para continuar.")
+                     duplicado = True   
+
+             else:
+                     huellas_de_esta_tanda.add(resumen_bytes)         
+            
+           if duplicado:
+                st.stop()
+
+           for obra in galeria:
+                 resumen_bytes = hashlib.md5(obra.getvalue()).hexdigest()
+                 ruta = f"imagen_{resumen_bytes}.jpg"
+
+                 st.session_state.obras_guardadas.add(resumen_bytes)
+                 st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
+
+                 descarga = Image.open(obra)
                  limpiar_imagen = descarga.convert('RGB')
-                 limpiar_imagen.save("imagen.jpg")
-                 st.session_state.imagen_lista = True
+                 limpiar_imagen.save(ruta)
+                 rutas_guardadas.append(ruta) 
+
+           st.session_state.imagen_lista = True      
+
          except Exception as e:
              st.error (f"No pudimos procesar el archivo: {e}") 
      else:
-         st.error("Por favor, sube un máximo de 2 imágenes.")      
+         st.error("Por favor, sube un máximo de 4 imágenes.")      
 
 with tab2:
      st.write("Usa la cámara dedicada de la web app para tomar una foto")
@@ -66,18 +88,32 @@ with tab2:
          except Exception as e:
              st.error (f"No pudimos procesar la foto: {e}")  
 
-if st.button("Realizar predicción"):
+with col2:
+      if st.button("Borrar y empezar de nuevo"):
+              st.session_state.obras_guardadas.clear()
+              for ruta in rutas_guardadas:
+                  if os.path.exists(ruta):
+                      os.remove(ruta)
+              st.session_state.imagen_lista = False
+              st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
+              st.rerun()
+              st.session_state.rutas_guardadas = []
+
+with col1:
+ if st.button("Realizar predicción"):
      if st.session_state.imagen_lista:
        with st.spinner("Realizando predicción..."):
-          prediccion = model_roboflow.predict("imagen.jpg", confidence=70, overlap=30)
-          prediccion.save("resultado.jpg")
+         for ruta in rutas_guardadas:  
+          prediccion = model_roboflow.predict(ruta, confidence=70, overlap=30)
+          nombre_resultado = f"resultado_{ruta}"
+          prediccion.save(nombre_resultado)
           datos = prediccion.json()
-          st.image("resultado.jpg", caption="Resultado de la predicción", width=400)
-          st.subheader("Taxones detectados en la muestra:")
+          st.image(nombre_resultado, caption="Resultado de la predicción", width=400)
+          st.write(f"Macroinvertebrados detectados en {ruta}:")
           if "predictions" in datos and len(datos["predictions"])>0:
              for taxon in datos["predictions"]:
                 nombre_taxon= taxon["class"]
                 certeza = taxon["confidence"]*100
                 st.write(f"**{nombre_taxon}** con una certeza de **{certeza:.2f}%**")
           else:
-            st.write("No se detectaron taxones en la imagen.")
+            st.write("No se detectaron macroinvertebrados en la imagen.")
