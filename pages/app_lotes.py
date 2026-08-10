@@ -18,10 +18,7 @@ pixeles = None
 col1, col2 = st.columns([6, 1])
 
 if "imagen_lista" not in st.session_state:
-     st.session_state.imagen_lista = False
-
-if "obras_guardadas" not in st.session_state:
-    st.session_state.obras_guardadas = set()   
+     st.session_state.imagen_lista = False 
 
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0      
@@ -44,13 +41,15 @@ with tab1:
         else:
             st.session_state.imagen_lista = False
             try:
+    
+                hashes_activos ={ruta.removeprefix("imagen_").removesuffix(".jpg") for ruta in st.session_state.rutas_guardadas}
                 huellas_de_esta_tanda = set()
 
                 for obra in galeria:
                     resumen_bytes = hashlib.md5(obra.getvalue()).hexdigest()
 
-                    if resumen_bytes in st.session_state.obras_guardadas:
-                        st.warning(f"La imagen {obra.name} ya ha sido procesada anteriormente. Elimínala para continuar.")
+                    if resumen_bytes in hashes_activos:
+                        st.warning(f"La imagen {obra.name} ya está en tu galería. Elimínala para continuar.")
                         st.stop()
 
                     if resumen_bytes in huellas_de_esta_tanda:
@@ -60,7 +59,6 @@ with tab1:
                     huellas_de_esta_tanda.add(resumen_bytes)
 
                     ruta = f"imagen_{resumen_bytes}.jpg"
-                    st.session_state.obras_guardadas.add(resumen_bytes)
                     st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
 
                     descarga = Image.open(obra)
@@ -122,7 +120,6 @@ with tab2:
             if st.button("Borrar", key=f"borrar_{ruta}"):
                 huella = ruta.removeprefix("imagen_").removesuffix(".jpg")
 
-                st.session_state.obras_guardadas.discard(huella)
                 st.session_state.rutas_guardadas.remove(ruta)
 
                 if os.path.exists(ruta):
@@ -134,7 +131,6 @@ with tab2:
 
 with col2:
       if st.button("Borrar y empezar de nuevo"):
-              st.session_state.obras_guardadas.clear()
               for ruta in st.session_state.rutas_guardadas:
                   if os.path.exists(ruta):
                       os.remove(ruta)
