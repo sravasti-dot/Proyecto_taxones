@@ -119,6 +119,24 @@ with tab2:
         except Exception as e:
             st.error(f"No pudimos procesar la foto: {e}")  
 
+if st.session_state.rutas_guardadas:
+    st.subheader("Imágenes listas para procesar:")
+    columnas = st.columns(4)
+    for i, ruta in enumerate(st.session_state.rutas_guardadas):
+        with columnas[i % 4]:
+            st.image(ruta, width=90, caption=os.path.basename(ruta))
+            if st.button("Borrar", key=f"borrar_{ruta}"):
+                huella = ruta.removeprefix("imagen_").removesuffix(".jpg")
+
+                st.session_state.obras_guardadas.discard(huella)
+                st.session_state.rutas_guardadas.remove(ruta)
+
+                if os.path.exists(ruta):
+                    os.remove(ruta)
+
+                st.session_state.imagen_lista = bool(st.session_state.rutas_guardadas)
+                st.rerun()            
+
 with col2:
       if st.button("Borrar y empezar de nuevo"):
               st.session_state.obras_guardadas.clear()
