@@ -22,7 +22,7 @@ col1, col2 = st.columns([6, 1])
 if "imagen_lista" not in st.session_state:
      st.session_state.imagen_lista = False
 
-if "obras_procesadas" not in st.session_state:
+if "obras_guardadas" not in st.session_state:
     st.session_state.obras_guardadas = set()   
 
 if "uploader_key" not in st.session_state:
