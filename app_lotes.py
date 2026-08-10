@@ -16,25 +16,34 @@ tab1, tab2 = st.tabs(["Subir archivo", "Cámara dedicada"])
 galeria = None
 pixeles = None
 duplicado = False
-rutas_guardadas = []
 col1, col2 = st.columns([6, 1])
 
 if "imagen_lista" not in st.session_state:
      st.session_state.imagen_lista = False
 
-if "obras_procesadas" not in st.session_state:
+if "obras_guardadas" not in st.session_state:
     st.session_state.obras_guardadas = set()   
 
 if "uploader_key" not in st.session_state:
-    st.session_state.uploader_key = 0           
+    st.session_state.uploader_key = 0      
+
+if "ultimo_batch_hashes" not in st.session_state:
+    st.session_state.ultimo_batch_hashes = set()  
+
+if "rutas_guardadas" not in st.session_state:
+    st.session_state.rutas_guardadas = []
 
 with tab1:
      st.write("Sube una imagen del taxón que deseas identificar")
      galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
 
      if galeria is not None and len(galeria) <= 4:
-         st.session_state.imagen_lista = False  
-         try:
+         hashes_batch_actual = {hashlib.md5(obra.getvalue()).hexdigest() for obra in galeria} 
+         if hashes_batch_actual == st.session_state.ultimo_batch_hashes:
+             pass
+         else:
+          st.session_state.imagen_lista = False
+          try:
            huellas_de_esta_tanda = set()
            for obra in galeria:  
              bytes_obra = obra.getvalue()
@@ -65,45 +74,70 @@ with tab1:
                  descarga = Image.open(obra)
                  limpiar_imagen = descarga.convert('RGB')
                  limpiar_imagen.save(ruta)
-                 rutas_guardadas.append(ruta) 
-
+                 st.session_state.rutas_guardadas.append(ruta)
+           st.session_state.ultimo_batch_hashes = hashes_batch_actual
            st.session_state.imagen_lista = True      
 
-         except Exception as e:
+          except Exception as e:
              st.error (f"No pudimos procesar el archivo: {e}") 
      else:
          st.error("Por favor, sube un máximo de 4 imágenes.")      
 
+if "camera_key" not in st.session_state:
+    st.session_state.camera_key = 0
+
 with tab2:
-     st.write("Usa la cámara dedicada de la web app para tomar una foto")
-     pixeles=st.camera_input("Tomar una foto desde este dispositivo...")
-     if pixeles is not None:
-         st.session_state.imagen_lista = False
-         try:
-             st.image(pixeles, caption="Imagen capturada con éxito", width=90)
-             foto_camara = Image.open(pixeles)
-             limpiar_imagen = foto_camara.convert('RGB')
-             limpiar_imagen.save("imagen.jpg")
-             st.session_state.imagen_lista = True
-         except Exception as e:
-             st.error (f"No pudimos procesar la foto: {e}")  
+    st.write("Usa la cámara dedicada de la web app para tomar una foto")
+
+    if len(st.session_state.rutas_guardadas) >= 4:
+      st.warning("Ya alcanzaste el máximo de 4 imágenes. Borra alguna para tomar otra.")
+    else:
+      pixeles = st.camera_input("Tomar una foto desde este dispositivo...", key=f"camera_{st.session_state.camera_key}")
+
+      if pixeles is not None:
+        try:
+            bytes_foto = pixeles.getvalue()
+            huella = hashlib.md5(bytes_foto).hexdigest()
+
+            if huella in st.session_state.obras_guardadas:
+                st.warning("Esta foto ya la habías tomado o subido antes.")
+            else:
+                ruta = f"imagen_{huella}.jpg"
+
+                st.image(pixeles, caption="Imagen capturada con éxito", width=90)
+                foto_camara = Image.open(pixeles)
+                limpiar_imagen = foto_camara.convert('RGB')
+                limpiar_imagen.save(ruta)
+
+                st.session_state.obras_guardadas.add(huella)
+                st.session_state.rutas_guardadas.append(ruta)
+                st.session_state.imagen_lista = True
+
+                st.session_state.camera_key += 1
+                st.rerun()
+
+        except Exception as e:
+            st.error(f"No pudimos procesar la foto: {e}")  
 
 with col2:
       if st.button("Borrar y empezar de nuevo"):
               st.session_state.obras_guardadas.clear()
-              for ruta in rutas_guardadas:
+              for ruta in st.session_state.rutas_guardadas:
                   if os.path.exists(ruta):
                       os.remove(ruta)
+              st.session_state.rutas_guardadas = []
+              st.session_state.ultimo_batch_hashes = set()
               st.session_state.imagen_lista = False
               st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
+              st.session_state.camera_key = st.session_state.get("camera_key", 0) + 1
               st.rerun()
-              st.session_state.rutas_guardadas = []
+              
 
 with col1:
  if st.button("Realizar predicción"):
-     if st.session_state.imagen_lista:
+     if st.session_state.imagen_lista and  st.session_state.rutas_guardadas:
        with st.spinner("Realizando predicción..."):
-         for ruta in rutas_guardadas:  
+         for ruta in st.session_state.rutas_guardadas:  
           prediccion = model_roboflow.predict(ruta, confidence=70, overlap=30)
           nombre_resultado = f"resultado_{ruta}"
           prediccion.save(nombre_resultado)
