@@ -26,53 +26,56 @@ if "obras_guardadas" not in st.session_state:
     st.session_state.obras_guardadas = set()   
 
 if "uploader_key" not in st.session_state:
-    st.session_state.uploader_key = 0           
+    st.session_state.uploader_key = 0    
+
+if "hashes_tanda_anterior" not in st.session_state:
+  st.session_state.hashes_tanda_anterior = set()           
 
 with tab1:
-     st.write("Sube una imagen del taxón que deseas identificar")
-     galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
+    st.write("Sube una imagen del taxón que deseas identificar")
+    galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
 
-     if galeria is not None and len(galeria) <= 4:
-         st.session_state.imagen_lista = False  
-         try:
-           huellas_de_esta_tanda = set()
-           for obra in galeria:  
-             bytes_obra = obra.getvalue()
-             resumen_bytes = hashlib.md5(bytes_obra).hexdigest()
-             
+    if galeria is not None:
+         if len(galeria) > 4:
+              st.error("Por favor, sube un máximo de 4 imágenes.")
+              st.stop()
 
-             if resumen_bytes in st.session_state.obras_guardadas:
-                 st.warning(f"La imagen {obra.name} ya ha sido procesada anteriormente.")
-                 duplicado = True
+         st.session_state.imagen_lista = False
+         duplicado_encontrado = False
+         huellas_esta_tanda = set()
 
-             elif resumen_bytes in huellas_de_esta_tanda:
-                     st.warning(f"La imagen {obra.name} está repetida dentro de tu selección actual. Elimínala para continuar.")
-                     duplicado = True   
+         for obra in galeria:
+                bytes_obra = obra.getvalue()
+                resumen_bytes = hashlib.md5(bytes_obra).hexdigest()
 
-             else:
-                     huellas_de_esta_tanda.add(resumen_bytes)         
-            
-           if duplicado:
-                st.stop()
+                if (resumen_bytes in huellas_esta_tanda or resumen_bytes in st.session_state.obras_guardadas):
+                    st.warning(f"La imagen '{obra.name}' está repetida dentro de tu selección actual. Elimínala para continuar.")
+                    duplicado = True
+                    break
 
-           for obra in galeria:
-                 resumen_bytes = hashlib.md5(obra.getvalue()).hexdigest()
-                 ruta = f"imagen_{resumen_bytes}.jpg"
+                else:
+                         hashes_actuales.add(resumen_bytes)
 
-                 st.session_state.obras_guardadas.add(resumen_bytes)
-                 st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
+                if duplicado:
+                    st.stop()
 
-                 descarga = Image.open(obra)
-                 limpiar_imagen = descarga.convert('RGB')
-                 limpiar_imagen.save(ruta)
-                 rutas_guardadas.append(ruta) 
+                try:    
+                 for obra in galeria:
+                    bytes_obra = obra.getvalue()
+                    resumen_bytes = hashlib.md5(bytes_obra).hexdigest()
+                    ruta = f"imagen_{resumen_bytes}.jpg"
+                    st.session_state.obras_guardadas.add(resumen_bytes)
+                    st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
 
-           st.session_state.imagen_lista = True      
+                    descarga = Image.open(obra)
+                    limpiar_imagen = descarga.convert('RGB')
+                    limpiar_imagen.save(ruta)
+                    rutas_guardadas.append(ruta)
+                 st.session_state.hashes_tanda_anterior = hashes_actuales
 
-         except Exception as e:
-             st.error (f"No pudimos procesar el archivo: {e}") 
-     else:
-         st.error("Por favor, sube un máximo de 4 imágenes.")      
+                 st.session_state.imagen_lista = True
+                except Exception as e:
+                     st.error(f"No pudimos procesar el archivo: {e}")
 
 with tab2:
      st.write("Usa la cámara dedicada de la web app para tomar una foto")
