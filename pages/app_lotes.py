@@ -93,7 +93,6 @@ with tab2:
 
 with col2:
       if st.button("Borrar y empezar de nuevo"):
-              st.session_state.obras_guardadas.clear()
               for ruta in st.session_state.rutas_guardadas:
                   if os.path.exists(ruta):
                       os.remove(ruta)
