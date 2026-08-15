@@ -31,7 +31,7 @@ with tab1:
     galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
 
     if galeria is not None:
-         if len(galeria) + len(st.session_state.rutas_guardadas) > 4:
+         if len(galeria) > 4:
               st.error("Por favor, sube un máximo de 4 imágenes.")
               st.stop()
 
