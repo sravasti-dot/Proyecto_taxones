@@ -88,7 +88,7 @@ with tab2:
          hashlib_foto = hashlib.md5(bytes_foto).hexdigest()
          ruta_foto = f"imagen_{hashlib_foto}.jpg"
 
-         if st.session_state.foto_pendiente != ruta_foto and ruta_foto not in st.session_state.rutas_guardadas:
+         if ruta_foto not in st.session_state.rutas_guardadas and st.session_state.foto_pendiente != ruta_foto:
                  st.session_state.foto_pendiente = ruta_foto
                  st.session_state.pixeles_pendientes = pixeles
        if st.session_state.foto_pendiente is not None:
