@@ -51,19 +51,22 @@ with tab1:
 
          if duplicado_encontrado:
              st.stop()
-
+         nuevas_rutas = []
          try:    
                  for obra in galeria:                      
                     bytes_obra = obra.getvalue()
                     hashlib_obra = hashlib.md5(bytes_obra).hexdigest()
                     ruta = f"imagen_{hashlib_obra}.jpg"
+                    if not os.path.exists(ruta):
+                     descarga = Image.open(obra)
+                     limpiar_imagen = descarga.convert('RGB')
+                     limpiar_imagen.save(ruta)
+
+                    nuevas_rutas.append(ruta) 
                     st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
 
-                    descarga = Image.open(obra)
-                    limpiar_imagen = descarga.convert('RGB')
-                    limpiar_imagen.save(ruta)
-                    st.session_state.rutas_guardadas.append(ruta)     
-                 st.session_state.imagen_lista = True
+                 st.session_state.rutas_guardadas = nuevas_rutas
+                 st.session_state.imagen_lista = len(st.session_state.rutas_guardadas) > 0   
          except Exception as e:
                      st.error(f"No pudimos procesar el archivo: {e}")
 
@@ -105,6 +108,7 @@ with col1:
  if st.button("Realizar predicción"):
      if st.session_state.imagen_lista:
        with st.spinner("Realizando predicción..."):
+         rutas_unicas = list(dict.fromkeys(st.session_state.rutas_guardadas))
          for ruta in st.session_state.rutas_guardadas:
           prediccion = model_roboflow.predict(ruta, confidence=70, overlap=30)
           nombre_resultado = f"resultado_{ruta}"
