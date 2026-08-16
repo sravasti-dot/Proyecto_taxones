@@ -128,8 +128,9 @@ with col2:
 
 with col1:
  if st.button("Realizar predicción"):
-     if st.session_state.imagen_lista:
+     if len(st.session_state.rutas_guardadas) > 0:
        with st.spinner("Realizando predicción..."):
+         st.session_state.imagen_lista = True
          rutas_unicas = list(dict.fromkeys(st.session_state.rutas_guardadas))
          for ruta in st.session_state.rutas_guardadas:
           prediccion = model_roboflow.predict(ruta, confidence=70, overlap=30)
