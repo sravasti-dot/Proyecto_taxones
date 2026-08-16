@@ -26,6 +26,12 @@ if "uploader_key" not in st.session_state:
 if "rutas_guardadas" not in st.session_state:  
     st.session_state.rutas_guardadas = []
 
+if "foto_pendiente" not in st.session_state:
+    st.session_state.foto_pendiente = None
+
+if "pixeles_pendientes" not in st.session_state:
+    st.session_state.pixeles_pendientes = None    
+
 with tab1:
     st.write("Sube una imagen del taxón que deseas identificar")
     galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
