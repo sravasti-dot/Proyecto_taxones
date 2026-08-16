@@ -110,7 +110,7 @@ with tab2:
                    except Exception as e:
                          st.error(f"No pudimos procesar la foto: {e}")
              with col_cam2:
-                 if st.button("❌ Descartar y repetir"):
+                 if st.button("Descartar y repetir"):
                      st.session_state.foto_pendiente = None
                      st.rerun()      
          
