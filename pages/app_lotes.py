@@ -137,16 +137,19 @@ with col1:
           nombre_resultado = f"resultado_{ruta}"
           prediccion.save(nombre_resultado)
           datos = prediccion.json()
-          st.image(nombre_resultado, caption="Resultado de la predicción", width=400)
+          es_galeria = ruta in st.session_state.rutas_galeria
+          destino = tab1 if es_galeria else tab2
+          origen = "galería" if es_galeria else "cámara"
+          destino.image(nombre_resultado, caption="Resultado de la predicción", width=400)
           origen = "galería" if ruta in st.session_state.rutas_galeria else "cámara" 
-          st.write(f"Macroinvertebrados detectados en {ruta} ({origen}):")
+          destino.write(f"Macroinvertebrados detectados en {ruta} ({origen}):")
           if "predictions" in datos and len(datos["predictions"])>0:
              for taxon in datos["predictions"]:
                 nombre_taxon= taxon["class"]
                 certeza = taxon["confidence"]*100
-                st.write(f"**{nombre_taxon}** con una certeza de **{certeza:.2f}%**")
+                destino.write(f"**{nombre_taxon}** con una certeza de **{certeza:.2f}%**")
           else:
-            st.write("No se detectaron macroinvertebrados en la imagen.")
+            destino.write("No se detectaron macroinvertebrados en la imagen.")
 
       else:
          st.warning("Primero sube imágenes válidas antes de predecir.") 
