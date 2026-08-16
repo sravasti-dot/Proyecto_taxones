@@ -67,7 +67,7 @@ with tab1:
                     nuevas_rutas.append(ruta) 
                     st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
 
-                 st.session_state.rutas_guardadas = nuevas_rutas
+                 st.session_state.rutas_galeria = nuevas_rutas
                  st.session_state.imagen_lista = (len(st.session_state.rutas_galeria) + len(st.session_state.rutas_camara)) > 0
          except Exception as e:
                      st.error(f"No pudimos procesar el archivo: {e}")
