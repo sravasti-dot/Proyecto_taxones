@@ -26,12 +26,6 @@ if "uploader_key" not in st.session_state:
 if "rutas_guardadas" not in st.session_state:  
     st.session_state.rutas_guardadas = []
 
-if "foto_pendiente" not in st.session_state:
-    st.session_state.foto_pendiente = None
-
-if "pixeles_pendientes" not in st.session_state:
-    st.session_state.pixeles_pendientes = None    
-
 with tab1:
     st.write("Sube una imagen del taxón que deseas identificar")
     galeria = st.file_uploader("Elige una imagen...", type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True, key=f"uploader_{st.session_state.uploader_key}")
@@ -77,44 +71,31 @@ with tab1:
                      st.error(f"No pudimos procesar el archivo: {e}")
 
 with tab2:
-     st.write("Usa la cámara dedicada de la web app para tomar una foto")
+    st.write("Usa la cámara dedicada de la web app para tomar una foto")
+    pixeles = st.camera_input("Tomar una foto desde este dispositivo...", key=f"camara_{st.session_state.uploader_key}")
+    
+    if pixeles is not None:
+        bytes_foto = pixeles.getvalue()
+        hashlib_foto = hashlib.md5(bytes_foto).hexdigest()
+        ruta_foto = f"imagen_{hashlib_foto}.jpg"
 
-     if len(st.session_state.rutas_guardadas) >= 4:
-         st.error("Ya alcanzaste el máximo de 4 imágenes permitidas.")
-     else:
-       pixeles=st.camera_input("Tomar una foto desde este dispositivo...", key=f"camara_{st.session_state.uploader_key}")
-       if pixeles is not None:
-         bytes_foto = pixeles.getvalue()
-         hashlib_foto = hashlib.md5(bytes_foto).hexdigest()
-         ruta_foto = f"imagen_{hashlib_foto}.jpg"
+        if len(st.session_state.rutas_guardadas) >= 4 and ruta_foto not in st.session_state.rutas_guardadas:
+            st.error("Ya alcanzaste el máximo de 4 imágenes.")
+            st.stop()
 
-         if ruta_foto not in st.session_state.rutas_guardadas and st.session_state.foto_pendiente != ruta_foto:
-                 st.session_state.foto_pendiente = ruta_foto
-                 st.session_state.pixeles_pendientes = pixeles
-       if st.session_state.foto_pendiente is not None:
-             st.image(st.session_state.pixeles_pendientes, caption="Vista previa de la foto capturada", width=250)
-             col_cam1, col_cam2 = st.columns(2) 
-             with col_cam1:
-               if st.button("Confirmar y guardar foto"):  
-                   try:
-                         foto_camara = Image.open(st.session_state.pixeles_pendientes)
-                         limpiar_imagen = foto_camara.convert('RGB')
-                         limpiar_imagen.save(st.session_state.foto_pendiente)
-
-                         if st.session_state.foto_pendiente not in st.session_state.rutas_guardadas:
-                             st.session_state.rutas_guardadas.append(st.session_state.foto_pendiente)      
-                         st.session_state.imagen_lista = True
-                         st.session_state.foto_pendiente = None
-                         st.success("¡Foto guardada con éxito!")
-                         st.rerun()
-                   except Exception as e:
-                         st.error(f"No pudimos procesar la foto: {e}")
-             with col_cam2:
-                 if st.button("Descartar y repetir"):
-                     st.session_state.foto_pendiente = None
-                     st.rerun()      
-         
-      
+        try:
+            if not os.path.exists(ruta_foto):
+                st.image(pixeles, caption="Imagen capturada con éxito", width=90)
+                foto_camara = Image.open(pixeles)
+                limpiar_imagen = foto_camara.convert('RGB')
+                limpiar_imagen.save(ruta_foto)
+            
+            if ruta_foto not in st.session_state.rutas_guardadas:
+                st.session_state.rutas_guardadas.append(ruta_foto)
+            
+            st.session_state.imagen_lista = True
+        except Exception as e:
+            st.error(f"No pudimos procesar la foto: {e}")  
 
 with col2:
       if st.button("Borrar y empezar de nuevo"):
@@ -128,9 +109,8 @@ with col2:
 
 with col1:
  if st.button("Realizar predicción"):
-     if len(st.session_state.rutas_guardadas) > 0:
+     if st.session_state.imagen_lista:
        with st.spinner("Realizando predicción..."):
-         st.session_state.imagen_lista = True
          rutas_unicas = list(dict.fromkeys(st.session_state.rutas_guardadas))
          for ruta in st.session_state.rutas_guardadas:
           prediccion = model_roboflow.predict(ruta, confidence=70, overlap=30)
@@ -148,4 +128,4 @@ with col1:
             st.write("No se detectaron macroinvertebrados en la imagen.")
 
      else:
-         st.warning("Primero sube imágenes válidas antes de predecir.")      
+         st.warning("Primero sube imágenes válidas antes de predecir.") 
