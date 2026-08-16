@@ -71,9 +71,6 @@ with tab1:
                  st.session_state.imagen_lista = (len(st.session_state.rutas_galeria) + len(st.session_state.rutas_camara)) > 0
          except Exception as e:
                      st.error(f"No pudimos procesar el archivo: {e}")
-    else:
-           st.session_state.rutas_galeria = []
-           st.session_state.imagen_lista = len(st.session_state.rutas_camara) > 0
 
 with tab2:
     st.write("Usa la cámara dedicada de la web app para tomar una foto")
@@ -114,15 +111,15 @@ with col2:
                         pass
              st.session_state.imagen_lista = False
              st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
-             st.session_state.rutas_guardadas = []
+             st.session_state.rutas_galeria = []
              st.session_state.rutas_camara = []
              st.rerun()
 
 with col1:
  if st.button("Realizar predicción"):
-     if st.session_state.imagen_lista and len(st.session_state.rutas_guardadas) > 0:
       todas_rutas = st.session_state.rutas_galeria + st.session_state.rutas_camara
-      if st.session_state.imagen_lista and len(todas_rutas) > 0:
+      if len(todas_rutas) > 0:
+       st.session_state.imagen_lista = True
        with st.spinner("Realizando predicción..."):
          rutas_unicas = list(dict.fromkeys(todas_rutas))
          for ruta in rutas_unicas:
@@ -140,5 +137,5 @@ with col1:
           else:
             st.write("No se detectaron macroinvertebrados en la imagen.")
 
-     else:
+      else:
          st.warning("Primero sube imágenes válidas antes de predecir.") 
