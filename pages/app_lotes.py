@@ -27,6 +27,7 @@ if "rutas_galeria" not in st.session_state:
     st.session_state.rutas_galeria = []
 if "rutas_camara" not in st.session_state:
     st.session_state.rutas_camara = []    
+  
 
 with tab1:
     st.write("Sube una imagen del taxón que deseas identificar")
@@ -64,8 +65,7 @@ with tab1:
                      limpiar_imagen = descarga.convert('RGB')
                      limpiar_imagen.save(ruta)
 
-                    nuevas_rutas.append(ruta) 
-                    st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
+                    nuevas_rutas.append(ruta)
 
                  st.session_state.rutas_galeria = nuevas_rutas
                  st.session_state.imagen_lista = (len(st.session_state.rutas_galeria) + len(st.session_state.rutas_camara)) > 0
@@ -93,7 +93,6 @@ with tab2:
             st.stop()
         try:
             if not os.path.exists(ruta_foto):
-                st.image(pixeles, caption="Imagen capturada con éxito", width=90)
                 foto_camara = Image.open(pixeles)
                 limpiar_imagen = foto_camara.convert('RGB')
                 limpiar_imagen.save(ruta_foto)
@@ -139,7 +138,8 @@ with col1:
           prediccion.save(nombre_resultado)
           datos = prediccion.json()
           st.image(nombre_resultado, caption="Resultado de la predicción", width=400)
-          st.write(f"Macroinvertebrados detectados en {ruta}:")
+          origen = "galería" if ruta in st.session_state.rutas_galeria else "cámara" 
+          st.write(f"Macroinvertebrados detectados en {ruta} ({origen}):")
           if "predictions" in datos and len(datos["predictions"])>0:
              for taxon in datos["predictions"]:
                 nombre_taxon= taxon["class"]
