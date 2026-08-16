@@ -23,8 +23,10 @@ if "imagen_lista" not in st.session_state:
 
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0    
-if "rutas_guardadas" not in st.session_state:  
-    st.session_state.rutas_guardadas = []
+if "rutas_galeria" not in st.session_state:  
+    st.session_state.rutas_galeria = []
+if "rutas_camara" not in st.session_state:
+    st.session_state.rutas_camara = []    
 
 with tab1:
     st.write("Sube una imagen del taxón que deseas identificar")
@@ -66,9 +68,12 @@ with tab1:
                     st.image(obra, caption=f"Imagen {obra.name} capturada con éxito", width=90)
 
                  st.session_state.rutas_guardadas = nuevas_rutas
-                 st.session_state.imagen_lista = len(st.session_state.rutas_guardadas) > 0   
+                 st.session_state.imagen_lista = (len(st.session_state.rutas_galeria) + len(st.session_state.rutas_camara)) > 0
          except Exception as e:
                      st.error(f"No pudimos procesar el archivo: {e}")
+    else:
+           st.session_state.rutas_galeria = []
+           st.session_state.imagen_lista = len(st.session_state.rutas_camara) > 0
 
 with tab2:
     st.write("Usa la cámara dedicada de la web app para tomar una foto")
@@ -79,10 +84,11 @@ with tab2:
         hashlib_foto = hashlib.md5(bytes_foto).hexdigest()
         ruta_foto = f"imagen_{hashlib_foto}.jpg"
 
-        if len(st.session_state.rutas_guardadas) >= 4 and ruta_foto not in st.session_state.rutas_guardadas:
-            st.error("Ya alcanzaste el máximo de 4 imágenes.")
-            st.stop()
 
+        total_actual = len(st.session_state.rutas_galeria) + len(st.session_state.rutas_camara)
+        if total_actual >= 4 and ruta_foto not in st.session_state.rutas_camara:
+            st.error("Ya alcanzaste el máximo de 4 imágenes en total.")
+            st.stop()
         try:
             if not os.path.exists(ruta_foto):
                 st.image(pixeles, caption="Imagen capturada con éxito", width=90)
@@ -90,8 +96,8 @@ with tab2:
                 limpiar_imagen = foto_camara.convert('RGB')
                 limpiar_imagen.save(ruta_foto)
             
-            if ruta_foto not in st.session_state.rutas_guardadas:
-                st.session_state.rutas_guardadas.append(ruta_foto)
+            if ruta_foto not in st.session_state.rutas_camara:
+                st.session_state.rutas_camara.append(ruta_foto)
             
             st.session_state.imagen_lista = True
         except Exception as e:
@@ -99,19 +105,26 @@ with tab2:
 
 with col2:
       if st.button("Borrar y empezar de nuevo"):
-              for ruta in st.session_state.rutas_guardadas:
+             todas_rutas = st.session_state.rutas_galeria + st.session_state.rutas_camara
+             for ruta in todas_rutas:
                   if os.path.exists(ruta):
-                      os.remove(ruta)
-              st.session_state.imagen_lista = False
-              st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
-              st.session_state.rutas_guardadas = []
-              st.rerun()
+                      try:
+                         os.remove(ruta)
+                      except:
+                        pass
+             st.session_state.imagen_lista = False
+             st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
+             st.session_state.rutas_guardadas = []
+             st.session_state.rutas_camara = []
+             st.rerun()
 
 with col1:
  if st.button("Realizar predicción"):
      if st.session_state.imagen_lista and len(st.session_state.rutas_guardadas) > 0:
+      todas_rutas = st.session_state.rutas_galeria + st.session_state.rutas_camara
+      if st.session_state.imagen_lista and len(todas_rutas) > 0:
        with st.spinner("Realizando predicción..."):
-         rutas_unicas = list(dict.fromkeys(st.session_state.rutas_guardadas))
+         rutas_unicas = list(dict.fromkeys(todas_rutas))
          for ruta in rutas_unicas:
           prediccion = model_roboflow.predict(ruta, confidence=70, overlap=30)
           nombre_resultado = f"resultado_{ruta}"
