@@ -71,6 +71,8 @@ with tab1:
                  st.session_state.imagen_lista = (len(st.session_state.rutas_galeria) + len(st.session_state.rutas_camara)) > 0
          except Exception as e:
                      st.error(f"No pudimos procesar el archivo: {e}")
+    else:
+        st.session_state.rutas_galeria = []               
 
 with tab2:
     st.write("Usa la cámara dedicada de la web app para tomar una foto")
@@ -95,10 +97,15 @@ with tab2:
             
             if ruta_foto not in st.session_state.rutas_camara:
                 st.session_state.rutas_camara.append(ruta_foto)
-            
             st.session_state.imagen_lista = True
         except Exception as e:
-            st.error(f"No pudimos procesar la foto: {e}")  
+                     st.error(f"No pudimos procesar la foto: {e}")        
+
+    for r_cam in st.session_state.rutas_camara:
+                if os.path.exists(r_cam):
+                    st.image(r_cam, caption="Foto de cámara capturada con éxito", width=90)    
+            
+         
 
 with col2:
       if st.button("Borrar y empezar de nuevo"):
