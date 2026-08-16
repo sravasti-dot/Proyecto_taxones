@@ -109,7 +109,7 @@ with col2:
 
 with col1:
  if st.button("Realizar predicción"):
-     if st.session_state.imagen_lista:
+     if st.session_state.imagen_lista and len(st.session_state.rutas_guardadas) > 0:
        with st.spinner("Realizando predicción..."):
          rutas_unicas = list(dict.fromkeys(st.session_state.rutas_guardadas))
          for ruta in st.session_state.rutas_guardadas:
