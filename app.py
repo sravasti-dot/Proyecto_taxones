@@ -5,7 +5,7 @@ st.set_page_config(page_title="Detector de taxones", layout="wide", page_icon="f
 st.image("mi_portada.png", use_container_width=True)
 st.title("Sistema automatizado para la identificación de macroinvertebrados")
 st.write("Sube una foto del taxón que deseas identificar")
-rf = Roboflow(api_key="SiR5RA2UDruTVpmqk5jF")
+rf = Roboflow(api_key=st.secrets["ROBOFLOW_API_KEY"])
 model_roboflow = rf.workspace("angie-oedt9").project("taxones").version(1).model
 archivo = None
 pixeles = None
